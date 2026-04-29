@@ -8,24 +8,29 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script src="config.js"></script>
 <style>
 :root{
-  --bg:#08090b; --surface:#0e1014; --surface2:#141720; --surface3:#1a1e28;
-  --border:rgba(255,255,255,0.05); --border2:rgba(255,255,255,0.09); --border3:rgba(255,255,255,0.14);
-  --text:#edeae3; --muted:#7b7e8a; --dim:#555863;
-  --accent:#c8f06e; --accent2:#a8d44a; --accent-dim:rgba(200,240,110,0.1); --accent-glow:rgba(200,240,110,0.25);
+  --bg:#060e08; --surface:#0b1a0e; --surface2:#112515; --surface3:#162f1b;
+  --border:rgba(34,197,94,0.08); --border2:rgba(34,197,94,0.15); --border3:rgba(34,197,94,0.25);
+  --text:#f0fdf4; --muted:#6b8f78; --dim:#4a6856;
+  --accent:#22c55e; --accent2:#16a34a; --accent-dim:rgba(34,197,94,0.13); --accent-glow:rgba(34,197,94,0.32);
+  --orange:#f97316; --orange2:#ea6c0b; --orange-dim:rgba(249,115,22,0.13); --orange-glow:rgba(249,115,22,0.28);
   --violet:#8b7cf8; --violet-dim:rgba(139,124,248,0.12);
   --red:#ff5858; --red-dim:rgba(255,88,88,0.12);
-  --green:#4ade80; --gold:#f5a623;
-  --card:var(--surface); --gray:var(--muted); --white:var(--text); --blue:#0e0e0f; --blue-mid:var(--surface2); --blue-light:var(--surface3);
+  --green:#22c55e; --gold:#f97316;
+  --card:var(--surface); --gray:var(--muted); --white:var(--text); --blue:#060e08; --blue-mid:var(--surface2); --blue-light:var(--surface3);
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 body{
   font-family:'Inter',sans-serif; background:var(--bg); color:var(--text);
   min-height:100vh; font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
-  background-image:radial-gradient(ellipse at 15% 0%,rgba(200,240,110,0.035),transparent 55%),radial-gradient(ellipse at 85% 100%,rgba(139,124,248,0.03),transparent 55%);
+  background-image:
+    radial-gradient(ellipse at 15% 0%,rgba(34,197,94,0.06),transparent 50%),
+    radial-gradient(ellipse at 85% 100%,rgba(249,115,22,0.05),transparent 50%),
+    radial-gradient(ellipse at 50% 50%,rgba(34,197,94,0.02),transparent 70%);
   background-attachment:fixed;
 }
 ::-webkit-scrollbar{width:6px;height:6px;}
@@ -35,9 +40,17 @@ body{
 
 /* ─── LOGIN ─── */
 #login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s ease;}
-#login-screen::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(200,240,110,0.06) 0%,transparent 60%);pointer-events:none;}
+#login-screen::before{content:'';position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse at 30% 20%,rgba(34,197,94,0.10) 0%,transparent 55%),
+    radial-gradient(ellipse at 70% 80%,rgba(249,115,22,0.08) 0%,transparent 55%);
+  pointer-events:none;}
+#login-screen::after{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,rgba(34,197,94,0.015) 0 1px,transparent 1px 60px),
+  repeating-linear-gradient(0deg,rgba(34,197,94,0.015) 0 1px,transparent 1px 60px);
+  pointer-events:none;}
 #login-screen.hidden{opacity:0;pointer-events:none;}
-.login-box{width:100%;max-width:380px;padding:48px 40px;background:var(--surface);border:1px solid var(--border2);border-radius:20px;position:relative;z-index:1;animation:fadeUp .5s ease both;box-shadow:0 30px 80px rgba(0,0,0,.5);}
+.login-box{width:100%;max-width:380px;padding:48px 40px;background:var(--surface);border:1px solid var(--border2);border-radius:20px;position:relative;z-index:1;animation:fadeUp .5s ease both;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 60px rgba(34,197,94,0.06);}
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
 .login-logo-area{display:flex;align-items:center;justify-content:center;margin-bottom:24px;}
 .login-logo-img{width:72px;height:72px;object-fit:contain;border-radius:14px;}
@@ -54,13 +67,13 @@ body{
 .toggle-pw{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;transition:color .2s;}
 .toggle-pw:hover{color:var(--text);}
 .login-erro{font-size:12px;color:var(--red);text-align:center;min-height:18px;margin-bottom:8px;}
-.btn-login{width:100%;background:var(--accent);border:none;border-radius:10px;color:#0a0a0a;font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;padding:14px;cursor:pointer;transition:opacity .2s,transform .15s,box-shadow .2s;box-shadow:0 8px 24px rgba(200,240,110,.15);}
-.btn-login:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 12px 32px rgba(200,240,110,.22);}
+.btn-login{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:10px;color:#051008;font-family:'Inter',sans-serif;font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;padding:14px;cursor:pointer;transition:opacity .2s,transform .15s,box-shadow .2s;box-shadow:0 8px 24px rgba(34,197,94,.25);}
+.btn-login:hover{opacity:.94;transform:translateY(-2px);box-shadow:0 14px 36px rgba(34,197,94,.35);}
 .login-footer{text-align:center;font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:28px;opacity:.55;}
 
 /* ─── APP SHELL (sidebar + main) ─── */
 #app{display:grid;grid-template-columns:240px 1fr;min-height:100vh;}
-aside{background:linear-gradient(180deg,#0b0d10 0%,#0a0b0e 100%);border-right:1px solid var(--border);padding:24px 18px;display:flex;flex-direction:column;gap:16px;position:sticky;top:0;height:100vh;z-index:50;}
+aside{background:linear-gradient(180deg,#071009 0%,#060e07 100%);border-right:1px solid var(--border);padding:24px 18px;display:flex;flex-direction:column;gap:16px;position:sticky;top:0;height:100vh;z-index:50;}
 .brand{display:flex;align-items:center;gap:12px;padding:4px 10px 18px;border-bottom:1px solid var(--border);}
 .brand-img-wrap{width:42px;height:42px;border-radius:11px;overflow:hidden;border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;background:var(--surface2);position:relative;cursor:pointer;flex-shrink:0;transition:border-color .18s,box-shadow .18s;}
 .brand-img-wrap:hover{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
@@ -75,12 +88,12 @@ nav{display:flex;flex-direction:column;gap:1px;flex:1;}
 nav button{background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:12.5px;font-weight:500;text-align:left;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:11px;position:relative;}
 nav button .nav-ico{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:15px;opacity:.85;}
 nav button:hover{color:var(--text);background:var(--surface2);}
-nav button.active{color:var(--accent);background:var(--accent-dim);font-weight:600;}
-nav button.active::before{content:'';position:absolute;left:-18px;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--accent);border-radius:0 3px 3px 0;}
+nav button.active{color:var(--accent);background:var(--accent-dim);font-weight:600;box-shadow:0 0 0 1px var(--border2) inset;}
+nav button.active::before{content:'';position:absolute;left:-18px;top:50%;transform:translateY(-50%);width:3px;height:20px;background:linear-gradient(180deg,var(--accent),var(--accent2));border-radius:0 3px 3px 0;box-shadow:0 0 8px var(--accent-glow);}
 .sidebar-foot{padding:10px;border-top:1px solid var(--border);font-size:10px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;text-align:center;}
 
 main{min-width:0;display:flex;flex-direction:column;}
-.topbar{background:rgba(14,16,20,0.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:0 28px;position:sticky;top:0;z-index:40;}
+.topbar{background:rgba(6,14,8,0.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 28px;position:sticky;top:0;z-index:40;}
 .topbar-inner{display:flex;align-items:center;justify-content:space-between;height:56px;gap:20px;}
 .topbar-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;font-style:italic;color:var(--text);letter-spacing:.3px;}
 .topbar-stats{display:flex;gap:0;}
@@ -93,12 +106,11 @@ main{min-width:0;display:flex;flex-direction:column;}
 .page.active{display:block;animation:pfade .25s ease;}
 @keyframes pfade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
-/* ─── SECTION TITLE ─── */
-.section-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;font-style:italic;color:var(--text);margin-bottom:22px;display:flex;align-items:center;gap:18px;letter-spacing:.3px;}
-.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border3),transparent);}
 
 /* ─── CARDS ─── */
-.card{background:linear-gradient(180deg,rgba(255,255,255,0.012),rgba(255,255,255,0)),var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px;margin-bottom:16px;position:relative;}
+.card{background:linear-gradient(160deg,rgba(34,197,94,0.04),rgba(34,197,94,0)),var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px;margin-bottom:16px;position:relative;transition:border-color .2s,box-shadow .2s;}
+.card:hover{border-color:var(--border2);}
+.card::before{content:'';position:absolute;top:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,rgba(34,197,94,0.2),transparent);}
 .card-title{font-size:10px;font-weight:600;letter-spacing:2.2px;text-transform:uppercase;color:var(--muted);margin-bottom:18px;}
 .card-sub-title{font-size:13px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:14px;}
 
@@ -114,7 +126,6 @@ select option{background:var(--bg);}
 textarea{resize:vertical;min-height:80px;font-family:'Inter',sans-serif;}
 
 /* ─── TIPO / MODAL BTN ─── */
-.tipo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
 .tipo-btn{background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--muted);cursor:pointer;padding:18px 10px;text-align:center;transition:all .18s;font-family:'Inter',sans-serif;position:relative;overflow:hidden;}
 .tipo-btn .icon{font-size:26px;display:block;margin-bottom:6px;}
 .tipo-btn .nome{font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;display:block;}
@@ -132,8 +143,8 @@ textarea{resize:vertical;min-height:80px;font-family:'Inter',sans-serif;}
 
 /* ─── BUTTONS ─── */
 .btn{border:none;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;padding:10px 18px;transition:all .17s;display:inline-flex;align-items:center;justify-content:center;gap:6px;}
-.btn-primary{background:var(--accent);color:#0a0a0a;box-shadow:0 4px 14px rgba(200,240,110,.12);}
-.btn-primary:hover{opacity:.92;transform:translateY(-1px);box-shadow:0 6px 18px rgba(200,240,110,.2);}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#040d06;box-shadow:0 4px 14px rgba(34,197,94,.2);}
+.btn-primary:hover{opacity:.94;transform:translateY(-1px);box-shadow:0 6px 20px rgba(34,197,94,.32);}
 .btn-outline{background:transparent;border:1px solid var(--border2);color:var(--muted);}
 .btn-outline:hover{border-color:var(--text);color:var(--text);background:var(--surface2);}
 .btn-danger{background:var(--red-dim);border:1px solid rgba(255,88,88,.3);color:var(--red);}
@@ -209,7 +220,7 @@ td{padding:12px 14px;font-size:13px;vertical-align:middle;}
 .modal-close:hover{border-color:var(--red);color:var(--red);}
 .modal-body{padding:24px 26px;}
 .modal-footer{display:flex;gap:10px;justify-content:flex-end;padding:16px 26px 20px;border-top:1px solid var(--border);flex-wrap:wrap;}
-.modal-tipo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px;}
+.modal-tipo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:6px;}
 .modal-tipo-btn{background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);cursor:pointer;padding:12px 6px;text-align:center;transition:all .18s;font-family:'Inter',sans-serif;}
 .modal-tipo-btn .icon{font-size:18px;display:block;margin-bottom:3px;}
 .modal-tipo-btn .nome{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;display:block;}
@@ -311,12 +322,66 @@ td{padding:12px 14px;font-size:13px;vertical-align:middle;}
 .empty{text-align:center;padding:52px 20px;color:var(--muted);font-size:13px;}
 .empty span{font-size:36px;display:block;margin-bottom:12px;opacity:.45;}
 
+/* ─── BADGE MOTO ─── */
+.badge-moto{background:rgba(249,115,22,0.12);color:#f97316;}
+
+/* ─── DASHBOARD KPI ─── */
+.dash-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
+.kpi-card{border-radius:16px;padding:22px 24px;position:relative;overflow:hidden;border:1px solid var(--border);animation:kpiIn .5s ease both;}
+.kpi-card::after{content:'';position:absolute;top:-30px;right:-30px;width:90px;height:90px;border-radius:50%;opacity:.12;filter:blur(20px);}
+.kpi-card.kpi-green{background:linear-gradient(135deg,rgba(34,197,94,0.15),rgba(34,197,94,0.04));border-color:rgba(34,197,94,0.25);}
+.kpi-card.kpi-green::after{background:var(--accent);}
+.kpi-card.kpi-orange{background:linear-gradient(135deg,rgba(249,115,22,0.15),rgba(249,115,22,0.04));border-color:rgba(249,115,22,0.25);}
+.kpi-card.kpi-orange::after{background:var(--orange);}
+.kpi-card.kpi-green2{background:linear-gradient(135deg,rgba(34,197,94,0.10),rgba(34,197,94,0.02));border-color:rgba(34,197,94,0.18);}
+.kpi-card.kpi-green2::after{background:var(--accent);}
+.kpi-card.kpi-orange2{background:linear-gradient(135deg,rgba(249,115,22,0.10),rgba(249,115,22,0.02));border-color:rgba(249,115,22,0.18);}
+.kpi-card.kpi-orange2::after{background:var(--orange);}
+.kpi-icon{font-size:28px;margin-bottom:10px;display:block;}
+.kpi-label{font-size:9.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.kpi-value{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:600;color:var(--text);line-height:1.1;margin-bottom:4px;}
+.kpi-card.kpi-green .kpi-value,.kpi-card.kpi-green2 .kpi-value{color:var(--accent);}
+.kpi-card.kpi-orange .kpi-value,.kpi-card.kpi-orange2 .kpi-value{color:var(--orange);}
+.kpi-sub{font-size:11px;color:var(--muted);}
+.kpi-trend{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;border-radius:20px;padding:2px 8px;margin-top:6px;}
+.kpi-trend.up{background:rgba(34,197,94,0.15);color:var(--accent);}
+.kpi-trend.dn{background:rgba(249,115,22,0.15);color:var(--orange);}
+@keyframes kpiIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.kpi-card:nth-child(1){animation-delay:.05s}
+.kpi-card:nth-child(2){animation-delay:.10s}
+.kpi-card:nth-child(3){animation-delay:.15s}
+.kpi-card:nth-child(4){animation-delay:.20s}
+
+/* ─── DASHBOARD CHARTS ─── */
+.dash-charts-row{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:16px;}
+.dash-charts-row.equal{grid-template-columns:1fr 1fr;}
+.dash-chart-canvas-wrap{position:relative;height:220px;}
+.dash-recentes-table{width:100%;border-collapse:collapse;}
+.dash-recentes-table th{font-size:9px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:var(--muted);padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);}
+.dash-recentes-table td{padding:10px 14px;font-size:12.5px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.dash-recentes-table tr:last-child td{border-bottom:none;}
+.dash-recentes-table tr:hover td{background:rgba(34,197,94,0.03);}
+
+/* ─── ANIMATED COUNTER ─── */
+@keyframes countUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.dash-number-anim{animation:countUp .4s ease both;}
+
+/* ─── GLOW PULSE ─── */
+@keyframes glowPulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0);}50%{box-shadow:0 0 18px 4px rgba(34,197,94,0.18);}}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:glowPulse 2.5s ease infinite;}
+.conn-dot.off{background:var(--red);box-shadow:0 0 8px var(--red);animation:none;}
+
+/* ─── SECTION TITLE UPDATE ─── */
+.section-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;font-style:italic;color:var(--text);margin-bottom:22px;display:flex;align-items:center;gap:18px;letter-spacing:.3px;}
+.section-title .title-badge{font-family:'Inter',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#040d06;border-radius:20px;padding:3px 10px;font-style:normal;}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border3),transparent);}
+
+/* ─── TIPO-GRID 4 cols ─── */
+.tipo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+
 /* ─── DIVIDERS ─── */
 hr[style],hr{border:none!important;border-top:1px solid var(--border)!important;margin:16px 0!important;}
 
-/* ─── CONEXÃO STATUS ─── */
-.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);}
-.conn-dot.off{background:var(--red);box-shadow:0 0 8px var(--red);}
 
 /* ─── TABS (relatórios) ─── */
 .tab-group{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:4px;gap:2px;}
@@ -334,12 +399,15 @@ hr[style],hr{border:none!important;border-top:1px solid var(--border)!important;
   .content{padding:20px 16px 40px;}
   .topbar{padding:0 16px;}
   .topbar-stats{display:none;}
-  .tipo-grid{grid-template-columns:1fr 1fr;}
+  .tipo-grid{grid-template-columns:1fr 1fr 1fr 1fr;}
+  .dash-kpi-grid{grid-template-columns:1fr 1fr;}
+  .dash-charts-row{grid-template-columns:1fr;}
+  .dash-charts-row.equal{grid-template-columns:1fr;}
   .modal-grid{grid-template-columns:1fr 1fr;}
   .form-grid{grid-template-columns:1fr;}
   .brand-text{display:none;}
   #rel-breakdown{grid-template-columns:1fr !important;}
-  .modal-tipo-grid{grid-template-columns:1fr 1fr 1fr;}
+  .modal-tipo-grid{grid-template-columns:repeat(4,1fr);}
   .modal-modal-grid{grid-template-columns:1fr 1fr;}
 }
 @media (max-width:600px){
@@ -359,7 +427,8 @@ hr[style],hr{border:none!important;border-top:1px solid var(--border)!important;
   .btn-sm{padding:7px 10px;font-size:11px;}
   .form-group label{font-size:10px;}
   .form-group input,.form-group select,.form-group textarea{padding:11px 12px;font-size:14px;}
-  .tipo-grid,.modal-tipo-grid{grid-template-columns:1fr 1fr;gap:8px;}
+  .tipo-grid,.modal-tipo-grid{grid-template-columns:1fr 1fr;gap:6px;}
+  .dash-kpi-grid{grid-template-columns:1fr 1fr;}
   .modal-grid,.modal-modal-grid{grid-template-columns:1fr 1fr;gap:8px;}
   .tipo-btn,.modal-btn,.modal-tipo-btn,.modal-modal-btn{padding:12px 8px;font-size:11px;}
   .table-wrapper{margin:0 -14px;}
@@ -429,6 +498,7 @@ hr[style],hr{border:none!important;border-top:1px solid var(--border)!important;
 
     <div class="nav-section">Operação</div>
     <nav>
+      <button data-page="dashboard" onclick="showPage('dashboard',this)"><span class="nav-ico">🏠</span> Dashboard</button>
       <button class="active" data-page="nova-venda" onclick="showPage('nova-venda',this)"><span class="nav-ico">➕</span> Nova Venda</button>
       <button data-page="vendas" onclick="showPage('vendas',this)"><span class="nav-ico">🧾</span> Vendas</button>
       <button data-page="clientes" onclick="showPage('clientes',this)"><span class="nav-ico">👤</span> Clientes</button>
@@ -457,6 +527,69 @@ hr[style],hr{border:none!important;border-top:1px solid var(--border)!important;
     </div>
 
     <div class="content">
+
+  <!-- ===== DASHBOARD ===== -->
+  <div id="page-dashboard" class="page">
+    <div class="section-title">Dashboard <span class="title-badge">Ao Vivo</span></div>
+
+    <!-- KPI Cards -->
+    <div class="dash-kpi-grid">
+      <div class="kpi-card kpi-green">
+        <span class="kpi-icon">💰</span>
+        <div class="kpi-label">Faturamento Hoje</div>
+        <div class="kpi-value" id="kpi-fat-hoje">R$ 0,00</div>
+        <div class="kpi-sub" id="kpi-vendas-hoje-sub">0 vendas hoje</div>
+      </div>
+      <div class="kpi-card kpi-orange">
+        <span class="kpi-icon">📅</span>
+        <div class="kpi-label">Faturamento do Mês</div>
+        <div class="kpi-value" id="kpi-fat-mes">R$ 0,00</div>
+        <div class="kpi-sub" id="kpi-vendas-mes-sub">0 vendas este mês</div>
+      </div>
+      <div class="kpi-card kpi-green2">
+        <span class="kpi-icon">👥</span>
+        <div class="kpi-label">Clientes Cadastrados</div>
+        <div class="kpi-value" id="kpi-clientes-total">0</div>
+        <div class="kpi-sub">base de clientes</div>
+      </div>
+      <div class="kpi-card kpi-orange2">
+        <span class="kpi-icon">🎯</span>
+        <div class="kpi-label">Ticket Médio</div>
+        <div class="kpi-value" id="kpi-ticket-medio">R$ 0,00</div>
+        <div class="kpi-sub">este mês</div>
+      </div>
+    </div>
+
+    <!-- Gráfico receita 14 dias + pagamentos -->
+    <div class="dash-charts-row">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Receita — Últimos 14 Dias</div>
+        <div class="dash-chart-canvas-wrap"><canvas id="chart-receita"></canvas></div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Formas de Pagamento (Mês)</div>
+        <div class="dash-chart-canvas-wrap" style="height:200px;display:flex;align-items:center;justify-content:center"><canvas id="chart-pagamento"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Gráfico por tipo veículo + lavagem -->
+    <div class="dash-charts-row equal" style="margin-top:16px">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Por Tipo de Veículo (Mês)</div>
+        <div class="dash-chart-canvas-wrap" style="height:180px"><canvas id="chart-tipo-veiculo"></canvas></div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-title">Por Tipo de Lavagem (Mês)</div>
+        <div class="dash-chart-canvas-wrap" style="height:180px"><canvas id="chart-tipo-lavagem"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Vendas recentes -->
+    <div class="card" style="margin-top:16px">
+      <div class="card-title">Últimas Vendas</div>
+      <div id="dash-recentes-wrap"></div>
+    </div>
+  </div>
 
   <!-- ===== NOVA VENDA ===== -->
   <div id="page-nova-venda" class="page active">
@@ -500,6 +633,7 @@ hr[style],hr{border:none!important;border-top:1px solid var(--border)!important;
         <button class="tipo-btn" onclick="selectTipo('pequeno',this)"><span class="icon">🚗</span><span class="nome">Pequeno</span><span class="sub">Hatch / Sedan</span></button>
         <button class="tipo-btn" onclick="selectTipo('suv',this)"><span class="icon">🚙</span><span class="nome">SUV</span><span class="sub">SUV / Crossover</span></button>
         <button class="tipo-btn" onclick="selectTipo('pickup',this)"><span class="icon">🛻</span><span class="nome">Pickup</span><span class="sub">Caminhonete</span></button>
+        <button class="tipo-btn" onclick="selectTipo('moto',this)"><span class="icon">🏍️</span><span class="nome">Moto</span><span class="sub">Motocicleta</span></button>
       </div>
 
       <hr>
@@ -558,6 +692,7 @@ hr[style],hr{border:none!important;border-top:1px solid var(--border)!important;
       <button class="filter-btn" onclick="setFiltro('pequeno',this)">🚗 Pequeno</button>
       <button class="filter-btn" onclick="setFiltro('suv',this)">🚙 SUV</button>
       <button class="filter-btn" onclick="setFiltro('pickup',this)">🛻 Pickup</button>
+      <button class="filter-btn" onclick="setFiltro('moto',this)">🏍️ Moto</button>
       <button class="filter-btn" onclick="setFiltro('expressa',this)">⚡ Expressa</button>
       <button class="filter-btn" onclick="setFiltro('completa',this)">✨ Completa</button>
       <button class="filter-btn" onclick="setFiltro('interna',this)">🧹 Interna</button>
@@ -784,6 +919,7 @@ hr[style],hr{border:none!important;border-top:1px solid var(--border)!important;
         <button class="modal-tipo-btn" onclick="selEditTipo('pequeno',this)"><span class="icon">🚗</span><span class="nome">Pequeno</span></button>
         <button class="modal-tipo-btn" onclick="selEditTipo('suv',this)"><span class="icon">🚙</span><span class="nome">SUV</span></button>
         <button class="modal-tipo-btn" onclick="selEditTipo('pickup',this)"><span class="icon">🛻</span><span class="nome">Pickup</span></button>
+        <button class="modal-tipo-btn" onclick="selEditTipo('moto',this)"><span class="icon">🏍️</span><span class="nome">Moto</span></button>
       </div>
       <hr>
       <label style="margin-bottom:8px;display:block">Tipo de Lavagem</label>
@@ -1199,7 +1335,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 // ║                    PAGES                                     ║
 // ╚══════════════════════════════════════════════════════════════╝
 const PAGE_TITLES = {
-  'nova-venda':'Nova Venda', 'vendas':'Vendas', 'clientes':'Clientes',
+  'dashboard':'Dashboard', 'nova-venda':'Nova Venda', 'vendas':'Vendas', 'clientes':'Clientes',
   'relatorios':'Relatórios', 'pagamentos':'Pagamentos', 'saidas':'Saídas', 'backup':'Backup'
 };
 function showPage(id, btn){
@@ -1208,12 +1344,142 @@ function showPage(id, btn){
   document.getElementById('page-'+id).classList.add('active');
   if (btn) btn.classList.add('active');
   document.getElementById('topbar-title').textContent = PAGE_TITLES[id] || '';
+  if (id === 'dashboard') renderDashboard();
   if (id === 'vendas') renderVendas();
   if (id === 'clientes') renderClientes();
   if (id === 'relatorios') renderRelatorio();
   if (id === 'pagamentos') renderFuncionarios();
   if (id === 'saidas') renderSaidas();
   if (id === 'backup') renderBackupPage();
+}
+
+// ╔══════════════════════════════════════════════════════════════╗
+// ║                    DASHBOARD                                 ║
+// ╚══════════════════════════════════════════════════════════════╝
+let _dashCharts = {};
+function renderDashboard(){
+  const hoje = toYMD(new Date());
+  const agora = new Date();
+  const mesAtual = hoje.slice(0,7);
+
+  const vendasHoje = vendas.filter(v => v.data === hoje);
+  const vendasMes  = vendas.filter(v => (v.data||'').slice(0,7) === mesAtual);
+
+  const fatHoje = vendasHoje.reduce((s,v)=>s+Number(v.valor||0),0);
+  const fatMes  = vendasMes.reduce((s,v)=>s+Number(v.valor||0),0);
+  const ticket  = vendasMes.length ? fatMes/vendasMes.length : 0;
+
+  document.getElementById('kpi-fat-hoje').textContent = formatBRL(fatHoje);
+  document.getElementById('kpi-fat-mes').textContent  = formatBRL(fatMes);
+  document.getElementById('kpi-clientes-total').textContent = clientes.length;
+  document.getElementById('kpi-ticket-medio').textContent   = formatBRL(ticket);
+  document.getElementById('kpi-vendas-hoje-sub').textContent = vendasHoje.length + ' venda' + (vendasHoje.length!==1?'s':'') + ' hoje';
+  document.getElementById('kpi-vendas-mes-sub').textContent  = vendasMes.length + ' venda' + (vendasMes.length!==1?'s':'') + ' este mês';
+
+  // ─ Chart.js defaults
+  Chart.defaults.color = '#6b8f78';
+  Chart.defaults.borderColor = 'rgba(34,197,94,0.08)';
+
+  // ─ Receita 14 dias
+  const dias14 = [];
+  const vals14 = [];
+  for(let i=13;i>=0;i--){
+    const d = new Date(agora); d.setDate(d.getDate()-i);
+    const label = d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+    const ymd = toYMD(d);
+    const fat = vendas.filter(v=>v.data===ymd).reduce((s,v)=>s+Number(v.valor||0),0);
+    dias14.push(label); vals14.push(fat);
+  }
+  const ctxR = document.getElementById('chart-receita');
+  if(_dashCharts.receita){_dashCharts.receita.destroy();}
+  _dashCharts.receita = new Chart(ctxR,{
+    type:'bar',
+    data:{labels:dias14,datasets:[{
+      label:'Receita (R$)',
+      data:vals14,
+      backgroundColor:'rgba(34,197,94,0.25)',
+      borderColor:'rgba(34,197,94,0.85)',
+      borderWidth:2,
+      borderRadius:6,
+      hoverBackgroundColor:'rgba(34,197,94,0.45)'
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>'R$ '+ctx.parsed.y.toFixed(2).replace('.',',')}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10},maxRotation:0}},
+        y:{grid:{color:'rgba(34,197,94,0.06)'},ticks:{callback:v=>'R$'+v.toFixed(0),font:{size:10}}}
+      }
+    }
+  });
+
+  // ─ Pagamentos mês (donut)
+  const pgCount = {};
+  vendasMes.forEach(v=>{const p=v.pagamento||'Outros'; pgCount[p]=(pgCount[p]||0)+Number(v.valor||0);});
+  const pgLabels = Object.keys(pgCount);
+  const pgVals   = Object.values(pgCount);
+  const PGCOLORS = ['#22c55e','#f97316','#60a5fa','#a78bfa','#fb7185','#34d399','#fbbf24'];
+  const ctxP = document.getElementById('chart-pagamento');
+  if(_dashCharts.pagamento){_dashCharts.pagamento.destroy();}
+  _dashCharts.pagamento = new Chart(ctxP,{
+    type:'doughnut',
+    data:{labels:pgLabels,datasets:[{data:pgVals,backgroundColor:PGCOLORS,borderColor:'rgba(6,14,8,0.8)',borderWidth:3,hoverOffset:8}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:10,boxWidth:12}},
+        tooltip:{callbacks:{label:ctx=>ctx.label+': R$'+ctx.parsed.toFixed(2).replace('.',',')}}}
+    }
+  });
+
+  // ─ Por tipo veículo (mês)
+  const tipoMap = {pequeno:'Pequeno',suv:'SUV',pickup:'Pickup',moto:'Moto'};
+  const tipoColors = ['#22c55e','#f97316','#60a5fa','#a78bfa'];
+  const tipoLabels = Object.keys(tipoMap).map(k=>tipoMap[k]);
+  const tipoVals   = Object.keys(tipoMap).map(k=>vendasMes.filter(v=>v.tipo===k).length);
+  const ctxTV = document.getElementById('chart-tipo-veiculo');
+  if(_dashCharts.tipoV){_dashCharts.tipoV.destroy();}
+  _dashCharts.tipoV = new Chart(ctxTV,{
+    type:'bar',
+    data:{labels:tipoLabels,datasets:[{data:tipoVals,backgroundColor:tipoColors,borderRadius:6,borderWidth:0}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.x+' lavagem(ns)'}}},
+      scales:{x:{grid:{color:'rgba(34,197,94,0.06)'},ticks:{font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}
+    }
+  });
+
+  // ─ Por tipo lavagem (mês)
+  const lavMap = {expressa:'Expressa',completa:'Completa',interna:'Interna',personalizada:'Personalizado'};
+  const lavColors = ['#22c55e','#f97316','#60a5fa','#fb7185'];
+  const lavLabels = Object.keys(lavMap).map(k=>lavMap[k]);
+  const lavVals   = Object.keys(lavMap).map(k=>vendasMes.filter(v=>v.modal===k).length);
+  const ctxTL = document.getElementById('chart-tipo-lavagem');
+  if(_dashCharts.tipoL){_dashCharts.tipoL.destroy();}
+  _dashCharts.tipoL = new Chart(ctxTL,{
+    type:'bar',
+    data:{labels:lavLabels,datasets:[{data:lavVals,backgroundColor:lavColors,borderRadius:6,borderWidth:0}]},
+    options:{
+      responsive:true,maintainAspectRatio:false,indexAxis:'y',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.x+' lavagem(ns)'}}},
+      scales:{x:{grid:{color:'rgba(34,197,94,0.06)'},ticks:{font:{size:10}}},y:{grid:{display:false},ticks:{font:{size:10}}}}
+    }
+  });
+
+  // ─ Últimas vendas
+  const recentes = [...vendas].sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,8);
+  const wrap = document.getElementById('dash-recentes-wrap');
+  if(!recentes.length){wrap.innerHTML='<div class="empty"><span>🧾</span>Nenhuma venda ainda.</div>';return;}
+  wrap.innerHTML = `<div class="table-wrapper"><table class="dash-recentes-table">
+    <thead><tr><th>Data</th><th>Cliente</th><th>Veículo</th><th>Lavagem</th><th>Pag.</th><th>Valor</th></tr></thead>
+    <tbody>${recentes.map(v=>`<tr>
+      <td>${formatDate(v.data)} ${v.hora||''}</td>
+      <td>${v.clienteNome||'—'}</td>
+      <td><span class="badge badge-${v.tipo||'pequeno'}">${tipoMap[v.tipo]||v.tipo||'—'}</span> ${v.placa||''}</td>
+      <td>${v.modalNome||lavMap[v.modal]||v.modal||'—'}</td>
+      <td>${v.pagamento||'—'}</td>
+      <td><span class="valor-big">${formatBRL(v.valor||0)}</span></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
 }
 
 // ╔══════════════════════════════════════════════════════════════╗
@@ -1726,6 +1992,8 @@ function toast(msg, erro){
   setTimeout(()=>t.className='', 2800);
 }
 function toYMD(d){ return d.toISOString().slice(0,10); }
+function formatBRL(v){ return 'R$ '+Number(v||0).toFixed(2).replace('.',','); }
+function formatDate(ds){ return formatData(ds); }
 function formatData(ds){
   if (!ds) return '—';
   const [y,m,d] = ds.split('-');
@@ -1733,7 +2001,7 @@ function formatData(ds){
 }
 function capFirst(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
 function escHtml(s){ return String(s||'').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
-function iconeTipo(t){ return { pequeno:'🚗', suv:'🚙', pickup:'🛻' }[t] || ''; }
+function iconeTipo(t){ return { pequeno:'🚗', suv:'🚙', pickup:'🛻', moto:'🏍️' }[t] || ''; }
 function iconeModal(m){ return { expressa:'⚡', completa:'✨', interna:'🧹', personalizada:'🎨' }[m] || ''; }
 const MODAL_LABELS = { expressa:'Expressa', completa:'Completa', interna:'Interna', personalizada:'Personalizado' };
 function textoLavagem(v){
@@ -1960,11 +2228,11 @@ function renderRelatorio(){
     const label = relMode === 'semanal' ? nomeDia[dt.getDay()] : dt.getDate();
     return `<div class="bar-wrap"><div class="bar" style="height:${hPct}%">${val>0?'<span class="bar-val">R$'+val.toFixed(0)+'</span>':''}</div><span class="bar-label">${label}</span></div>`;
   }).join('');
-  const tipoMap = {pequeno:0,suv:0,pickup:0}, tipoCount = {pequeno:0,suv:0,pickup:0};
+  const tipoMap = {pequeno:0,suv:0,pickup:0,moto:0}, tipoCount = {pequeno:0,suv:0,pickup:0,moto:0};
   lista.forEach(v => { tipoMap[v.tipo] = (tipoMap[v.tipo]||0) + v.valor; tipoCount[v.tipo] = (tipoCount[v.tipo]||0) + 1; });
   const tipoTotal = Math.max(Object.values(tipoMap).reduce((a,b) => a+b, 0), 1);
   const tipoEl = document.getElementById('rel-tipo');
-  if (tipoEl) tipoEl.innerHTML = [{key:'pequeno',icon:'Pequeno'},{key:'suv',icon:'SUV'},{key:'pickup',icon:'Pickup'}].map(t => `<div class="breakdown-row"><span class="breakdown-label">${t.icon}</span><div class="breakdown-bar-bg"><div class="breakdown-bar-fill" style="width:${(tipoMap[t.key]||0)/tipoTotal*100}%"></div></div><span class="breakdown-count">${tipoCount[t.key]||0} lav.</span><span class="breakdown-pct">${Math.round((tipoMap[t.key]||0)/tipoTotal*100)}%</span></div>`).join('');
+  if (tipoEl) tipoEl.innerHTML = [{key:'pequeno',icon:'🚗 Pequeno'},{key:'suv',icon:'🚙 SUV'},{key:'pickup',icon:'🛻 Pickup'},{key:'moto',icon:'🏍️ Moto'}].map(t => `<div class="breakdown-row"><span class="breakdown-label">${t.icon}</span><div class="breakdown-bar-bg"><div class="breakdown-bar-fill" style="width:${(tipoMap[t.key]||0)/tipoTotal*100}%"></div></div><span class="breakdown-count">${tipoCount[t.key]||0} lav.</span><span class="breakdown-pct">${Math.round((tipoMap[t.key]||0)/tipoTotal*100)}%</span></div>`).join('');
   const modMap = {expressa:0,completa:0,interna:0,personalizada:0}, modCount = {expressa:0,completa:0,interna:0,personalizada:0};
   lista.forEach(v => { modMap[v.modal] = (modMap[v.modal]||0) + v.valor; modCount[v.modal] = (modCount[v.modal]||0) + 1; });
   const modTotal = Math.max(Object.values(modMap).reduce((a,b) => a+b, 0), 1);
